@@ -38,7 +38,7 @@ contract DeployScript is Script {
         token.approve(address(staking), 1000 * 1e18);
         
         // Fund the contract with initial rewards
-        // staking.fundRewards(1000 * 1e18);
+        // staking.fund(1000 * 1e18);
 
         vm.stopBroadcast();
 
