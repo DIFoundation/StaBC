@@ -9,13 +9,26 @@ $ forge script script/Deploy.s.sol:DeployScript --rpc-url $RPC_URL --private-key
 
 ```shell
 == Logs ==
-  StakingToken deployed at: 0x6815e76CE475451D42363f4b55533720f19Ebada
-  StakingContract deployed at: 0xF708183DA2f773c213F93A3220eC5922fd73C720
+Base Sepolia
+  StakingToken deployed at: 0x1573Cbbe7fcdeFe94Bbda4854Cac622C02b983EF
+  StakingContract deployed at: 0x250C8478F8d292b6C1323054CEFA3bbF5845e439
   Deployment Parameters:
   Initial APR: 20
   Minimum Lock Duration: 604800
   APR Reduction Per Thousand: 1
   Emergency Withdraw Penalty: 10
+  Operation successful
+
+Celo Sepolia
+  StakingToken deployed at: 0xa20A783bB0f2A9A8Cf0fB8776ff83757d965391d
+  StakingContract deployed at: 0xd52C356EBD736A7d54fA0dF75b3a2794522C6d93
+  Deployment Parameters:
+  Initial APR: 20
+  Minimum Lock Duration: 604800
+  APR Reduction Per Thousand: 1
+  Emergency Withdraw Penalty: 10
+  Operation successful
+
 ```
 
 
