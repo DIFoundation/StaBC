@@ -3,7 +3,7 @@ import Header from '@/components/Header'
 import React, { useState } from 'react';
 import { Wallet, TrendingUp, Vote, ArrowLeftRight, Coins, History, Settings, ChevronDown, Copy, ExternalLink, Lock, Unlock, Clock, Award, Info, Plus, Check, X, Search, Filter, Download, Moon, Sun, Globe } from 'lucide-react';
 
-export default function page() {
+export default function Page() {
 
     const [currentPage, setCurrentPage] = useState('dashboard');
     const [activeTab, setActiveTab] = useState('staking');
@@ -49,7 +49,7 @@ export default function page() {
         { id: 4, type: 'Unstake', amount: 500, hash: '0xjkl...012', date: '2025-10-21', status: 'confirmed' }
     ];
 
-    const const StaBCApp = () => {chains = [
+    const chains = [
         { id: 'ethereum', name: 'Ethereum', icon: '⟠' },
         { id: 'base', name: 'Base', icon: '🔵' },
         { id: 'arbitrum', name: 'Arbitrum', icon: '🔷' },

@@ -1,4 +1,15 @@
-const DashboardPage = () => (
+
+'use client'
+import { useState } from 'react'
+import StatsOverview from '@/components/StatsOverview'
+import { ArrowLeftRight, Lock, Vote } from 'lucide-react'
+import StakingTab from '@/components/dashboardTabs/StakingTab'
+import GovernanceTab from '@/components/dashboardTabs/GovernanceTab'
+import BridgeTab from '@/components/dashboardTabs/BridgeTab'
+
+export default function Dashboard() {
+    const [activeTab, setActiveTab] = useState('staking');
+  return (
     <div className="max-w-7xl mx-auto px-6 py-8">
       <StatsOverview />
       
@@ -31,4 +42,6 @@ const DashboardPage = () => (
         </div>
       </div>
     </div>
-  );
+  )
+}
+

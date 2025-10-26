@@ -1,4 +1,25 @@
-  const BridgeTab = () => (
+'use client'
+import { useState } from 'react'
+import { ArrowLeftRight, ChevronDown, History } from 'lucide-react';
+
+export default function BridgeTab() {
+
+  const [sourceChain, setSourceChain] = useState('ethereum');
+  const [destChain, setDestChain] = useState('base');
+  const [bridgeAmount, setBridgeAmount] = useState('');
+  const chains = [
+    { id: 'ethereum', name: 'Ethereum', icon: '⟠' },
+    { id: 'base', name: 'Base', icon: '🔵' },
+    { id: 'arbitrum', name: 'Arbitrum', icon: '🔷' },
+    { id: 'optimism', name: 'Optimism', icon: '🔴' }
+  ];
+  const bridgeHistory = [
+    { id: 1, from: 'Ethereum', to: 'Base', amount: 500, token: 'STABC', status: 'completed', date: '2025-10-25' },
+    { id: 2, from: 'Base', to: 'Arbitrum', amount: 250, token: 'STABC', status: 'pending', date: '2025-10-26' }
+  ];
+
+
+  return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Bridge Form */}
@@ -76,7 +97,7 @@
                 <span className="text-white font-medium">~5 minutes</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400">You'll Receive</span>
+                <span className="text-gray-400">You&apos;ll Receive</span>
                 <span className="text-white font-medium">
                   {bridgeAmount ? (parseFloat(bridgeAmount) * 0.999).toFixed(2) : '0.00'} STABC
                 </span>
@@ -103,9 +124,8 @@
                     <span className="text-white font-medium">{tx.amount} {tx.token}</span>
                     <ArrowLeftRight className="w-4 h-4 text-gray-400" />
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    tx.status === 'completed' ? 'bg-green-500/20 text-green-500' : 'bg-yellow-500/20 text-yellow-500'
-                  }`}>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${tx.status === 'completed' ? 'bg-green-500/20 text-green-500' : 'bg-yellow-500/20 text-yellow-500'
+                    }`}>
                     {tx.status}
                   </span>
                 </div>
@@ -119,4 +139,5 @@
         </div>
       </div>
     </div>
-  );
+  )
+}
