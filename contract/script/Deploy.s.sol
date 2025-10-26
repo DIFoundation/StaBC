@@ -48,5 +48,20 @@ contract DeployScript is Script {
         console.log("Minimum Lock Duration:", minLockDuration);
         console.log("APR Reduction Per Thousand:", aprReductionPerThousand);
         console.log("Emergency Withdraw Penalty:", emergencyWithdrawPenalty);
+
+        // write to file
+        vm.writeFile("deployment.txt", "StakingToken deployed at: " + address(token));
+        vm.writeFile("deployment.txt", "StakingContract deployed at: " + address(staking));
+        vm.writeFile("deployment.txt", "Initial APR: " + initialApr);
+        vm.writeFile("deployment.txt", "Minimum Lock Duration: " + minLockDuration);
+        vm.writeFile("deployment.txt", "APR Reduction Per Thousand: " + aprReductionPerThousand);
+        vm.writeFile("deployment.txt", "Emergency Withdraw Penalty: " + emergencyWithdrawPenalty);
+        vm.writeFile("deployment.txt", "Deployment Parameters:");
+
+        // read file
+        string memory deployment = vm.readFile("deployment.txt");
+        console.log("Deployment Parameters:", deployment);  
+
+        console.log("Operation successful");
     }
 }
