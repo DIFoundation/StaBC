@@ -2,7 +2,7 @@
 import { TrendingUp, Coins, History, Filter, Download, ExternalLink, ArrowLeftRight, Lock, Unlock, Award, Vote } from "lucide-react"
 
 
-export default function Portfolio() {
+export default function PortfolioPage() {
 
     const walletBalance = 1250.5;
     const stakedAmount = 5000;
