@@ -1,4 +1,28 @@
-const PortfolioPage = () => (
+'use client'
+import { TrendingUp, Coins, History, Filter, Download, ExternalLink, ArrowLeftRight, Lock, Unlock, Award, Vote } from "lucide-react"
+
+
+export default function Portfolio() {
+
+    const walletBalance = 1250.5;
+    const stakedAmount = 5000;
+    const pendingRewards = 125.75;
+
+    const stakingPositions = [
+        { id: 1, amount: 3000, rewards: 85.5, duration: '30 days', unlockDate: '2025-11-25', apy: 12.5 },
+        { id: 2, amount: 2000, rewards: 40.25, duration: '90 days', unlockDate: '2026-01-23', apy: 15.2 }
+    ];
+
+    const transactions = [
+        { id: 1, type: 'Stake', amount: 1000, hash: '0xabc...123', date: '2025-10-24', status: 'confirmed' },
+        { id: 2, type: 'Claim', amount: 25.5, hash: '0xdef...456', date: '2025-10-23', status: 'confirmed' },
+        { id: 3, type: 'Bridge', amount: 500, hash: '0xghi...789', date: '2025-10-22', status: 'confirmed' },
+        { id: 4, type: 'Unstake', amount: 500, hash: '0xjkl...012', date: '2025-10-21', status: 'confirmed' }
+    ];
+
+
+
+  return (
     <div className="max-w-7xl mx-auto px-6 py-8">
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">Portfolio</h2>
@@ -152,4 +176,5 @@ const PortfolioPage = () => (
         </div>
       </div>
     </div>
-  );
+  )
+}

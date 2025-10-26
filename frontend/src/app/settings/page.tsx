@@ -1,4 +1,13 @@
-const SettingsPage = () => (
+'use client'
+import { useState } from 'react'
+import { Wallet, Settings, Moon, Sun, Copy, LogOut, ExternalLink, Globe, Coins, TrendingUp } from 'lucide-react';
+
+export default function SettingsPage() {
+
+    const userAddress = '0x742d...4a9c';
+    const [theme, setTheme] = useState('dark');
+
+  return (
     <div className="max-w-4xl mx-auto px-6 py-8">
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">Settings</h2>
@@ -160,4 +169,5 @@ const SettingsPage = () => (
         </div>
       </div>
     </div>
-  );
+  )
+}
