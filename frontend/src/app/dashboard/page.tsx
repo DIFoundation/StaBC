@@ -7,7 +7,7 @@ import StakingTab from '@/components/dashboardTabs/StakingTab'
 import GovernanceTab from '@/components/dashboardTabs/GovernanceTab'
 import BridgeTab from '@/components/dashboardTabs/BridgeTab'
 
-export default function Dashboard() {
+export default function DashboardPage() {
     const [activeTab, setActiveTab] = useState('staking');
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
