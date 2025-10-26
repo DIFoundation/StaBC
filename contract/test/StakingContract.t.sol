@@ -53,7 +53,7 @@ contract StakingContractTest is Test {
         token.approve(address(staking), type(uint256).max);
     }
 
-    function testInitialSetup() public {
+    function testInitialSetup() public view {
         assertEq(address(staking.stakingToken()), address(token));
         assertEq(staking.currentRewardRate(), DEFAULT_APR);
         assertEq(staking.initialApr(), DEFAULT_APR);
@@ -425,7 +425,7 @@ contract StakingContractTest is Test {
             block.timestamp
         );
         
-        StakingContract newStaking = new StakingContract(newTokenAddress, staking.initialApr(), staking.minLockDuration(), staking.aprReductionPerThousand(), staking.emergencyWithdrawPenalty());
+        // StakingContract newStaking = new StakingContract(newTokenAddress, staking.initialApr(), staking.minLockDuration(), staking.aprReductionPerThousand(), staking.emergencyWithdrawPenalty());
     }
     
     function testTokenRecoveryEvent() public {
