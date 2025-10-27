@@ -18,8 +18,8 @@ export default function DashboardPage() {
         <div className="flex border-b border-gray-700">
           {[
             { id: 'staking', label: 'Staking', icon: Lock },
-            { id: 'governance', label: 'Governance', icon: Vote },
-            { id: 'bridge', label: 'Bridge', icon: ArrowLeftRight }
+            { id: 'governance', label: 'Governance (coming soon)', icon: Vote },
+            { id: 'bridge', label: 'Bridge (coming soon)', icon: ArrowLeftRight }
           ].map((tab) => (
             <button
               key={tab.id}
