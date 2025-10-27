@@ -5,10 +5,6 @@ import { TrendingUp, Award, Check, Coins } from 'lucide-react';
 function StatsOverview() {
 
     // Mock data
-    const userAddress = '0x742d...4a9c';
-    const walletBalance = 1250.5;
-    const stakedAmount = 5000;
-    const pendingRewards = 125.75;
     const currentAPY = 12.5;
     const tvl = 25000000;
     const totalStakers = 15420;

@@ -1,6 +1,5 @@
-
 'use client'
-import { useState } from 'react'
+import React, { useState } from 'react';
 import StatsOverview from '@/components/StatsOverview'
 import { ArrowLeftRight, Lock, Vote } from 'lucide-react'
 import StakingTab from '@/components/dashboardTabs/StakingTab'
@@ -8,9 +7,10 @@ import GovernanceTab from '@/components/dashboardTabs/GovernanceTab'
 import BridgeTab from '@/components/dashboardTabs/BridgeTab'
 
 export default function DashboardPage() {
+
     const [activeTab, setActiveTab] = useState('staking');
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="px-10 md:px-20 lg:px-40 py-8 min-h-screen bg-gray-950 text-white">
       <StatsOverview />
       
       {/* Tabs */}
