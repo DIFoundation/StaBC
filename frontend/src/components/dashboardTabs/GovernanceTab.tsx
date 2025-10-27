@@ -10,7 +10,7 @@ export default function GovernanceTab() {
     { id: 1, title: 'Increase Staking Rewards by 2%', status: 'active', votes: { for: 45000, against: 12000 }, deadline: '3 days', description: 'Proposal to increase the base staking APY from 12.5% to 14.5% to attract more stakers.' },
     { id: 2, title: 'Reduce Bridge Fees to 0.1%', status: 'active', votes: { for: 38000, against: 8500 }, deadline: '5 days', description: 'Lower bridge fees to increase cross-chain liquidity and user adoption.' },
     { id: 3, title: 'Add Polygon Network Support', status: 'passed', votes: { for: 52000, against: 5000 }, deadline: 'Ended', description: 'Integrate Polygon network for faster and cheaper transactions.' }
-  ];
+  ]; 
 
   return (
     <div className="space-y-6">

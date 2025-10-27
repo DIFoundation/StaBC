@@ -8,7 +8,7 @@ export default function SettingsPage() {
     const [theme, setTheme] = useState('dark');
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8">
+    <div className="mx-auto  px-10 md:px-20 lg:px-40 py-8 min-h-screen bg-gray-950 text-white">
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">Settings</h2>
         <p className="text-gray-400">Manage your wallet and preferences</p>

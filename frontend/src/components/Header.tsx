@@ -41,11 +41,11 @@ export default function Header() {
   ];
 
   return (
-    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+    <header className="bg-gray-900 dark:border-gray-800 sticky top-0 z-50 transition-colors duration-300 backdrop-blur-sm bg-opacity-80 dark:bg-opacity-80">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-1">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center justify-between">
             <Link href="/dashboard" className="flex items-center">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <Coins className="w-5 h-5 text-white" />
@@ -54,7 +54,7 @@ export default function Header() {
                 StaBC
               </span>
             </Link>
-
+          </div>
             {/* Desktop Navigation */}
             <nav className="hidden md:ml-10 md:flex md:space-x-1">
               {navItems.map((item) => (
@@ -74,7 +74,6 @@ export default function Header() {
                 </Link>
               ))}
             </nav>
-          </div>
 
           {/* Right Controls */}
           <div className="flex items-center space-x-3">
@@ -115,7 +114,7 @@ export default function Header() {
             <Link
               key={item.name}
               href={item.path}
-              className={`block px-3 py-2 rounded-md text-base font-medium ${
+              className={`block px-5 py-2 rounded-md text-base font-medium ${
                 isActive(item.path)
                   ? 'bg-gray-800 text-white'
                   : 'text-gray-300 hover:bg-gray-700 hover:text-white'
@@ -126,9 +125,9 @@ export default function Header() {
           ))}
 
           {/* Mobile Wallet Controls */}
-          <div className="pt-4 flex flex-col gap-2 border-t border-gray-700 px-5">
-            <AppKitNetworkButton className="w-full justify-center" />
-            <AppKitButton className="w-full justify-center" />
+          <div className="pt-4 flex flex-col sm:flex-row gap-2 border-t border-gray-700 px-5 w-full">
+            <AppKitNetworkButton className="w-full justify-center sm:w-auto" />
+            <AppKitButton className="w-full justify-center sm:w-auto" />
           </div>
         </div>
       </div>

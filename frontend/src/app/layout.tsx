@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import Header from "@/components/Header";
 
 import { headers } from 'next/headers' // added
 import ContextProvider from '@/context'
@@ -33,7 +34,10 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${inter.style} font-sans`}>
-        <ContextProvider cookies={cookies}>{children}</ContextProvider>
+        <ContextProvider cookies={cookies}>
+          <Header />
+          {children}
+        </ContextProvider>
       </body>
     </html>
   );
