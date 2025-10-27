@@ -1,163 +1,328 @@
-import { useEffect, useState, useCallback } from "react";
-import { useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
-import { getContractAddresses } from "@/lib/addresses";
-import { TOKEN_ABI } from "@/lib/abi";
-import { createPublicClient, createWalletClient, custom, formatEther, parseEther } from "viem";
-import { baseSepolia, celoAlfajores } from "viem/chains";
+import { parseUnits, formatUnits, createPublicClient, http, parseEventLogs } from 'viem';
+import { baseSepolia, celoAlfajores } from 'viem/chains';
+import { TOKEN_ABI } from '../lib/abi';
+import { getContractAddresses } from '../lib/addresses';
+import { useAccount, useReadContract, useWriteContract } from 'wagmi';
+import { useEffect } from 'react';
 
-// Map to chain IDs
-const CHAINS: Record<number, any> = {
-  84532: baseSepolia,
-  11142220: celoAlfajores,
-};STAKING_ABI
+interface UseTokenParams {
+  chainId: number;
+  spenderAddress?: `0x${string}`;
+  watchEvents?: boolean;
+}
 
-export function useStakingToken() {
-  const { address, chainId, isConnected } = useAppKitAccount();
-  const { walletProvider } = useAppKitProvider();
+interface UseTokenReturn {
+  name: string | undefined;
+  symbol: string | undefined;
+  decimals: number | undefined;
+  totalSupply: bigint | undefined;
+  mintAmount: bigint | undefined;
+  mintCooldown: bigint | undefined;
+  balance: bigint | undefined;
+  balanceFormatted: string | undefined;
+  allowance: bigint | undefined;
+  allowanceFormatted: string | undefined;
+  lastMintTimestamp: bigint | undefined;
+  canMint: boolean;
+  timeUntilNextMint: number | undefined;
+  isLoading: boolean;
+  isError: boolean;
+  mint: () => Promise<void>;
+  transfer: (to: `0x${string}`, amount: string) => Promise<void>;
+  approve: (spender: `0x${string}`, amount: string) => Promise<void>;
+  transferFrom: (from: `0x${string}`, to: `0x${string}`, amount: string) => Promise<void>;
+  isPending: boolean;
+}
 
-  const [balance, setBalance] = useState<string>("0");
-  const [decimals, setDecimals] = useState<number>(18);
-  const [symbol, setSymbol] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+export function useToken({ 
+  chainId, 
+  spenderAddress,
+  watchEvents = false 
+}: UseTokenParams): UseTokenReturn {
+  const { address: userAddress } = useAccount();
+  const tokenAddress = getContractAddresses(chainId).stakingToken as `0x${string}`;
+  
+  // Create public client for the current chain
+  const publicClient = createPublicClient({
+    chain: chainId === 84532 ? baseSepolia : celoAlfajores,
+    transport: http()
+  });
 
-  // ✅ Instantiate contract clients
-  const chain = CHAINS[chainId ?? 84532];
-  const addresses = chainId ? getContractAddresses(chainId) : null;
+  // Read contract data
+  const { data: name } = useReadContract({
+    address: tokenAddress,
+    abi: TOKEN_ABI,
+    functionName: 'name',
+    chainId,
+  }) as { data: string | undefined };
 
-  const publicClient = chain
-    ? createPublicClient({ chain, transport: custom(walletProvider as any) })
-    : null;
+  const { data: symbol } = useReadContract({
+    address: tokenAddress,
+    abi: TOKEN_ABI,
+    functionName: 'symbol',
+    chainId,
+  }) as { data: string | undefined };
 
-  const walletClient = walletProvider
-    ? createWalletClient({
-        account: address as `0x${string}`,
-        chain,
-        transport: custom(walletProvider as any),
-      })
-    : null;
+  const { data: decimals } = useReadContract({
+    address: tokenAddress,
+    abi: TOKEN_ABI,
+    functionName: 'decimals',
+    chainId,
+  }) as { data: number | undefined };
 
-  // 🔹 Fetch token balance
-  const fetchBalance = useCallback(async () => {
-    if (!publicClient || !addresses?.stakingToken || !address) return;
-    try {
-      const result = await publicClient.readContract({
-        address: addresses.stakingToken as `0x${string}`,
-        abi: TOKEN_ABI,
-        functionName: "balanceOf",
-        args: [address],
-      });
-      setBalance(formatEther(result as bigint));
-    } catch (error) {
-      console.error("❌ Error fetching balance:", error);
-    }
-  }, [publicClient, address, addresses]);
+  const { data: totalSupply } = useReadContract({
+    address: tokenAddress,
+    abi: TOKEN_ABI,
+    functionName: 'totalSupply',
+    chainId,
+  }) as { data: bigint | undefined };
 
-  // 🔹 Fetch token metadata (symbol, decimals)
-  const fetchTokenInfo = useCallback(async () => {
-    if (!publicClient || !addresses?.stakingToken) return;
-    try {
-      const [symbol, decimals] = await Promise.all([
-        publicClient.readContract({
-          address: addresses.stakingToken as `0x${string}`,
-          abi: TOKEN_ABI,
-          functionName: "symbol",
-        }),
-        publicClient.readContract({
-          address: addresses.stakingToken as `0x${string}`,
-          abi: TOKEN_ABI,
-          functionName: "decimals",
-        }),
-      ]);
-      setSymbol(symbol as string);
-      setDecimals(Number(decimals));
-    } catch (error) {
-      console.error("❌ Error fetching token info:", error);
-    }
-  }, [publicClient, addresses]);
+  const { data: mintAmount } = useReadContract({
+    address: tokenAddress,
+    abi: TOKEN_ABI,
+    functionName: 'MINT_AMOUNT',
+    chainId,
+  }) as { data: bigint | undefined };
 
-  // 🔹 Approve spender
-  const approve = useCallback(
-    async (spender: `0x${string}`, amount: string) => {
-      if (!walletClient || !addresses?.stakingToken) return;
-      setIsLoading(true);
-      try {
-        const tx = await walletClient.writeContract({
-          address: addresses.stakingToken as `0x${string}`,
-          abi: TOKEN_ABI,
-          functionName: "approve",
-          args: [spender, parseEther(amount)],
-        });
-        console.log("✅ Approve TX:", tx);
-        return tx;
-      } catch (error) {
-        console.error("❌ Approve error:", error);
-      } finally {
-        setIsLoading(false);
-      }
+  const { data: mintCooldown } = useReadContract({
+    address: tokenAddress,
+    abi: TOKEN_ABI,
+    functionName: 'MINT_COOLDOWN',
+    chainId,
+  }) as { data: bigint | undefined };
+
+  const { 
+    data: balance, 
+    isLoading: isBalanceLoading, 
+    isError: isBalanceError, 
+    refetch: refetchBalance 
+  } = useReadContract({
+    address: tokenAddress,
+    abi: TOKEN_ABI,
+    functionName: 'balanceOf',
+    args: userAddress ? [userAddress] : undefined,
+    chainId,
+    query: {
+      enabled: !!userAddress,
     },
-    [walletClient, addresses]
-  );
+  }) as { 
+    data: bigint | undefined; 
+    isLoading: boolean; 
+    isError: boolean; 
+    refetch: () => void; 
+  };
 
-  // 🔹 Transfer tokens
-  const transfer = useCallback(
-    async (to: `0x${string}`, amount: string) => {
-      if (!walletClient || !addresses?.stakingToken) return;
-      setIsLoading(true);
-      try {
-        const tx = await walletClient.writeContract({
-          address: addresses.stakingToken as `0x${string}`,
-          abi: TOKEN_ABI,
-          functionName: "transfer",
-          args: [to, parseEther(amount)],
-        });
-        console.log("✅ Transfer TX:", tx);
-        return tx;
-      } catch (error) {
-        console.error("❌ Transfer error:", error);
-      } finally {
-        setIsLoading(false);
-      }
+  const { 
+    data: allowance, 
+    refetch: refetchAllowance 
+  } = useReadContract({
+    address: tokenAddress,
+    abi: TOKEN_ABI,
+    functionName: 'allowance',
+    args: userAddress && spenderAddress ? [userAddress, spenderAddress] : undefined,
+    chainId,
+    query: {
+      enabled: !!userAddress && !!spenderAddress,
     },
-    [walletClient, addresses]
-  );
+  }) as { 
+    data: bigint | undefined; 
+    refetch: () => void; 
+  };
 
-  // 🔹 Mint tokens (if allowed)
-  const mint = useCallback(async () => {
-    if (!walletClient || !addresses?.stakingToken) return;
-    setIsLoading(true);
-    try {
-      const tx = await walletClient.writeContract({
-        address: addresses.stakingToken as `0x${string}`,
-        abi: TOKEN_ABI,
-        functionName: "mint",
-      });
-      console.log("✅ Mint TX:", tx);
-      return tx;
-    } catch (error) {
-      console.error("❌ Mint error:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [walletClient, addresses]);
+  const { 
+    data: lastMintTimestamp, 
+    refetch: refetchLastMint 
+  } = useReadContract({
+    address: tokenAddress,
+    abi: TOKEN_ABI,
+    functionName: 'lastMintTimestamp',
+    args: userAddress ? [userAddress] : undefined,
+    chainId,
+    query: {
+      enabled: !!userAddress,
+    },
+  }) as { 
+    data: bigint | undefined; 
+    refetch: () => void; 
+  };
 
-  // 🔹 Lifecycle: auto-fetch token info & balance
+  // Computed values
+  const balanceFormatted = balance !== undefined && decimals !== undefined 
+    ? formatUnits(balance, decimals) 
+    : undefined;
+
+  const allowanceFormatted = allowance !== undefined && decimals !== undefined
+    ? formatUnits(allowance, decimals)
+    : undefined;
+
+  const canMint = lastMintTimestamp !== undefined && mintCooldown !== undefined
+    ? Date.now() / 1000 >= Number(lastMintTimestamp) + Number(mintCooldown)
+    : false;
+
+  const timeUntilNextMint = lastMintTimestamp !== undefined && mintCooldown !== undefined
+    ? Math.max(0, (Number(lastMintTimestamp) + Number(mintCooldown)) - Date.now() / 1000)
+    : undefined;
+
+  // Event watching
   useEffect(() => {
-    if (isConnected && address && chainId) {
-      fetchBalance();
-      fetchTokenInfo();
-    }
-  }, [isConnected, address, chainId, fetchBalance, fetchTokenInfo]);
+    if (!watchEvents || !userAddress || !publicClient) return;
+
+    // Watch Transfer events
+    const unwatchTransfer = publicClient.watchContractEvent({
+      address: tokenAddress,
+      abi: TOKEN_ABI,
+      eventName: 'Transfer',
+      onLogs: (logs) => {
+        const involvedInTransfer = logs.some(
+          (log) => {
+            // Use type assertion to access the event data
+            const event = log as unknown as { args: { from?: `0x${string}`; to?: `0x${string}`; amount?: bigint } };
+            return (
+              (event.args.from?.toLowerCase() === userAddress?.toLowerCase()) ||
+              (event.args.to?.toLowerCase() === userAddress?.toLowerCase())
+            );
+          }
+        );
+        if (involvedInTransfer) {
+          refetchBalance();
+        }
+      },
+    });
+
+    // Watch Approval events
+    const unwatchApproval = publicClient.watchContractEvent({
+      address: tokenAddress,
+      abi: TOKEN_ABI,
+      eventName: 'Approval',
+      onLogs: (logs) => {
+        const userApproved = logs.some((log) => {
+          try {
+            const events = parseEventLogs({
+              abi: TOKEN_ABI,
+              eventName: 'Approval',
+              logs: [log],
+            });
+            if (events.length > 0) {
+              const event = events[0] as { owner?: `0x${string}`; args?: { owner?: `0x${string}` } };
+              const owner = event.owner || event.args?.owner;
+              return owner?.toLowerCase() === userAddress?.toLowerCase();
+            }
+            return false;
+          } catch (e) {
+            console.error('Error parsing Approval event:', e);
+            return false;
+          }
+        });
+        if (userApproved) {
+          refetchAllowance();
+        }
+      },
+    });
+
+    return () => {
+      unwatchTransfer();
+      unwatchApproval();
+    };
+  }, [watchEvents, userAddress, spenderAddress, tokenAddress, publicClient, refetchBalance, refetchAllowance]);
+
+  // Write contract functions
+  const { writeContract, isPending } = useWriteContract();
+
+  const mint = async () => {
+    if (!userAddress) throw new Error('Wallet not connected');
+    
+    await writeContract({
+      address: tokenAddress,
+      abi: TOKEN_ABI,
+      functionName: 'mint',
+      chainId,
+    });
+
+    // Refetch data after successful mint
+    setTimeout(() => {
+      refetchBalance();
+      refetchLastMint();
+    }, 2000);
+  };
+
+  const transfer = async (to: `0x${string}`, amount: string) => {
+    if (!userAddress) throw new Error('Wallet not connected');
+    if (decimals === undefined) throw new Error('Decimals not loaded');
+
+    const amountInWei = parseUnits(amount, decimals);
+
+    await writeContract({
+      address: tokenAddress,
+      abi: TOKEN_ABI,
+      functionName: 'transfer',
+      args: [to, amountInWei],
+      chainId,
+    });
+
+    setTimeout(() => {
+      refetchBalance();
+    }, 2000);
+  };
+
+  const approve = async (spender: `0x${string}`, amount: string) => {
+    if (!userAddress) throw new Error('Wallet not connected');
+    if (decimals === undefined) throw new Error('Decimals not loaded');
+
+    const amountInWei = parseUnits(amount, decimals);
+
+    await writeContract({
+      address: tokenAddress,
+      abi: TOKEN_ABI,
+      functionName: 'approve',
+      args: [spender, amountInWei],
+      chainId,
+    });
+
+    setTimeout(() => {
+      refetchAllowance();
+    }, 2000);
+  };
+
+  const transferFrom = async (from: `0x${string}`, to: `0x${string}`, amount: string) => {
+    if (!userAddress) throw new Error('Wallet not connected');
+    if (decimals === undefined) throw new Error('Decimals not loaded');
+
+    const amountInWei = parseUnits(amount, decimals);
+
+    await writeContract({
+      address: tokenAddress,
+      abi: TOKEN_ABI,
+      functionName: 'transferFrom',
+      args: [from, to, amountInWei],
+      chainId,
+    });
+
+    setTimeout(() => {
+      refetchBalance();
+      refetchAllowance();
+    }, 2000);
+  };
 
   return {
-    address,
-    chainId,
-    balance,
+    name,
     symbol,
     decimals,
-    isLoading,
-    fetchBalance,
-    approve,
-    transfer,
+    totalSupply,
+    mintAmount,
+    mintCooldown,
+    balance,
+    balanceFormatted,
+    allowance,
+    allowanceFormatted,
+    lastMintTimestamp,
+    canMint,
+    timeUntilNextMint,
+    isLoading: isBalanceLoading,
+    isError: isBalanceError,
     mint,
+    transfer,
+    approve,
+    transferFrom,
+    isPending,
   };
 }
