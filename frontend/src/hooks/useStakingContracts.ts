@@ -458,19 +458,6 @@ export function useStaking({
       });
     });
 
-  // // ============================================================================
-  // // UTILITIES
-  // // ============================================================================
-  // const refetchAll = useCallback(() => {
-  //   refetchUserInfo();
-  //   refetchUserDetails();
-  //   refetchPendingRewards();
-  //   refetchTimeUntilUnlock();
-  //   refetchTotalStaked();
-  //   refetchTotalRewards();
-  //   refetchRewardRate();
-  // }, [ refetchUserInfo, refetchUserDetails, refetchPendingRewards, refetchTimeUntilUnlock, refetchTotalStaked, refetchTotalRewards, refetchRewardRate ]);
-
   // ============================================================================
   // RETURN
   // ============================================================================
