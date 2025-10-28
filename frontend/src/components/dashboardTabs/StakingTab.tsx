@@ -5,6 +5,7 @@ import React from 'react'
 import { useToken } from '@/hooks/useStakingToken';
 import { useStaking } from '@/hooks/useStakingContracts';
 import { useAppKitAccount, useAppKitNetwork } from '@reown/appkit/react'
+import { Progress } from '@/components/ui/progress'
 
 export default function StakingTab() {
 
@@ -38,7 +39,7 @@ export default function StakingTab() {
   // Mock data
   const walletBalance = balanceFormatted || '0';
   const stakedAmount = stakedAmountFormatted || '0';
-  const pendingRewards = pendingRewardsFormatted || '0';
+  const pendingRewards = Number(pendingRewardsFormatted).toFixed(5) || '0';
   const currentAPY = currentRewardRateFormatted ? Number(currentRewardRateFormatted) * 100 : 0;
 
   // Calculate time until unlock in readable format
@@ -274,7 +275,7 @@ export default function StakingTab() {
         
         {Number(stakedAmount) > 0 ? (
           <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div>
                 <div className="text-sm text-gray-400 mb-1">Staked Amount</div>
                 <div className="text-lg font-bold text-white">{stakedAmount} STABC</div>
@@ -292,6 +293,13 @@ export default function StakingTab() {
                 <div className={`text-lg font-bold ${canWithdraw ? 'text-green-500' : 'text-orange-500'}`}>
                   {getUnlockDisplay()}
                 </div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-400 mb-1">Progress</div>
+                <div className="flex items-center gap-2">
+                  <Progress value={canWithdraw ? 100 : 0} className="w-full h-2 border border-gray-300 rounded-lg"/>
+                  <span>{canWithdraw ? 100 : 0}%</span>
+                </div>  
               </div>
             </div>
           </div>
