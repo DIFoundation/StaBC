@@ -4,7 +4,7 @@ import { Wallet, Settings, Moon, Sun, Copy, LogOut, ExternalLink, Globe, Coins, 
 import { useAppKitAccount, useAppKitNetwork, useDisconnect, useAppKit } from '@reown/appkit/react'
 import { useToken } from '@/hooks/useStakingToken';
 import { useStaking } from '@/hooks/useStakingContracts';
-import { baseSepolia, celoAlfajores } from 'viem/chains';
+// import { baseSepolia, celoSepolia } from '@reown/appkit/networks'
 import Link from 'next/link';
 
 export default function SettingsPage() {
