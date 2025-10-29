@@ -297,7 +297,7 @@ export default function StakingTab() {
               <div>
                 <div className="text-sm text-gray-400 mb-1">Progress</div>
                 <div className="flex items-center gap-2">
-                  <Progress value={timeUntilUnlockSeconds && stakedAmount ? (100 - (timeUntilUnlockSeconds / (30 * 24 * 60 * 60) * 100)) : 0} className="w-full h-2 border border-gray-300 rounded-lg"/>
+                  <Progress value={timeUntilUnlockSeconds && stakedAmount ? (100 - (timeUntilUnlockSeconds / (30 * 24 * 60 * 60) * 100)) : 0} className="bg-gray-300 border border-gray-300 rounded-lg  "/>
                   <span>{timeUntilUnlockSeconds && stakedAmount ? (100 - (timeUntilUnlockSeconds / (30 * 24 * 60 * 60) * 100)).toFixed(0) : 0}%</span>
                 </div>  
               </div>
