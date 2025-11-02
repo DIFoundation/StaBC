@@ -259,6 +259,13 @@ export const CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "claimAndRestake",
+    inputs: [],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "currentRewardRate",
     inputs: [],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],

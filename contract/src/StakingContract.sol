@@ -225,6 +225,45 @@ contract StakingContract is ReentrancyGuard, Pausable, Ownable {
         );
     }
     
+    /**
+     * @notice Claim and automatically restake rewards for compound interest
+     * @dev Updates rewards, claims them, and immediately stakes them back
+     */
+    function claimAndRestake() external nonReentrant whenNotPaused {
+        _updateRewards(msg.sender);
+        UserInfo storage user = userInfo[msg.sender];
+        
+        uint256 rewards = user.pendingRewards;
+        require(rewards > 0, "No rewards to claim");
+        
+        user.pendingRewards = 0;
+        user.rewardDebt = 0;
+        
+        // Instead of transferring, add rewards directly to staked amount
+        user.stakedAmount += rewards;
+        user.lastStakeTimestamp = block.timestamp;
+        totalStaked += rewards;
+        
+        // Update reward rate
+        _updateRewardRate();
+        
+        emit RewardsClaimed(
+            msg.sender,
+            rewards,
+            block.timestamp,
+            0,
+            totalStaked
+        );
+        
+        emit Staked(
+            msg.sender,
+            rewards,
+            block.timestamp,
+            totalStaked,
+            currentRewardRate
+        );
+    }
+    
     // Internal functions
     function _updateRewards(address _user) internal {
         UserInfo storage user = userInfo[_user];
@@ -233,18 +272,34 @@ contract StakingContract is ReentrancyGuard, Pausable, Ownable {
         }
         
         uint256 timeElapsed = block.timestamp - user.lastStakeTimestamp;
-        uint256 minutesElapsed = timeElapsed / 60;
+        uint256 secondsElapsed = timeElapsed;
         
-        if (minutesElapsed > 0) {
-            // Use scaling factor for precision
-            uint256 scalingFactor = 1e18;
-            uint256 annualRate = currentRewardRate * scalingFactor / 100; // Convert percentage to decimal
-            uint256 minutesPerYear = 365 days / 1 minutes;
+        if (secondsElapsed > 0) {
+            // Improved precision calculation
+            // APY = currentRewardRate (as percentage, e.g., 20 = 20%)
+            // Reward per second = (stakedAmount * APY / 100) / secondsPerYear
+            uint256 secondsPerYear = 365 days;
             
-            uint256 rewardPerMinute = (user.stakedAmount * annualRate) / (minutesPerYear * scalingFactor);
-            uint256 newRewards = rewardPerMinute * minutesElapsed;
+            // Calculate: (stakedAmount * currentRewardRate * secondsElapsed) / (100 * secondsPerYear)
+            // Using higher precision to avoid rounding errors
+            uint256 numerator = user.stakedAmount * currentRewardRate * secondsElapsed;
+            uint256 denominator = 100 * secondsPerYear;
+            uint256 newRewards = numerator / denominator;
             
-            user.pendingRewards += newRewards;
+            // Handle any remainder to improve precision
+            uint256 remainder = (numerator % denominator) * 1e18 / denominator;
+            if (remainder > 0 && newRewards == 0) {
+                // For very small amounts, accumulate remainder
+                user.rewardDebt += remainder;
+                if (user.rewardDebt >= 1e18) {
+                    newRewards += user.rewardDebt / 1e18;
+                    user.rewardDebt = user.rewardDebt % 1e18;
+                }
+            }
+            
+            if (newRewards > 0) {
+                user.pendingRewards += newRewards;
+            }
             user.lastStakeTimestamp = block.timestamp;
         }
     }
@@ -277,16 +332,14 @@ contract StakingContract is ReentrancyGuard, Pausable, Ownable {
         }
         
         uint256 timeElapsed = block.timestamp - user.lastStakeTimestamp;
-        uint256 minutesElapsed = timeElapsed / 60;
+        uint256 secondsElapsed = timeElapsed;
 
-        if (minutesElapsed > 0) {
-            // Use same scaling factor logic as _updateRewards
-            uint256 scalingFactor = 1e18;
-            uint256 annualRate = currentRewardRate * scalingFactor / 100;
-            uint256 minutesPerYear = 365 days / 1 minutes;
-            
-            uint256 rewardPerMinute = (user.stakedAmount * annualRate) / (minutesPerYear * scalingFactor);
-            uint256 newRewards = rewardPerMinute * minutesElapsed;
+        if (secondsElapsed > 0) {
+            // Same calculation as _updateRewards for consistency
+            uint256 secondsPerYear = 365 days;
+            uint256 numerator = user.stakedAmount * currentRewardRate * secondsElapsed;
+            uint256 denominator = 100 * secondsPerYear;
+            uint256 newRewards = numerator / denominator;
             
             return user.pendingRewards + newRewards;
         }
@@ -346,6 +399,13 @@ contract StakingContract is ReentrancyGuard, Pausable, Ownable {
     event TokenRecovered(
         address indexed token,
         uint256 amount,
+        uint256 timestamp
+    );
+
+    event RewardsCompounded(
+        address indexed user,
+        uint256 rewardsAmount,
+        uint256 newStakedAmount,
         uint256 timestamp
     );
 
