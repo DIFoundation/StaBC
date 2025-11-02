@@ -20,20 +20,20 @@ export function GlobalStakingStats() {
 
   if (isError) {
     return (
-      <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg text-red-600 dark:text-red-400">
+      <div className="bg-red-900/20 p-4 rounded-lg text-red-400 border border-red-900/50">
         Failed to load staking data. Please try again later.
       </div>
     );
   }
 
   const renderStat = (label: string, value: string | number, suffix: string = '') => (
-    <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-      <span className="text-sm text-gray-500 dark:text-gray-400">{label}</span>
+    <div className="flex flex-col items-center p-4 bg-gray-900/50 rounded-xl border border-gray-800 shadow-lg">
+      <span className="text-sm text-gray-400">{label}</span>
       {isLoading ? (
-        <Skeleton className="h-8 w-24 my-1" />
+        <Skeleton className="h-8 w-24 my-1 bg-gray-800" />
       ) : (
-        <span className="text-2xl font-bold text-gray-900 dark:text-white">
-          {value} {suffix}
+        <span className="text-2xl font-bold text-white">
+          {value} {suffix && <span className="text-blue-400">{suffix}</span>}
         </span>
       )}
     </div>
@@ -42,7 +42,7 @@ export function GlobalStakingStats() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+        <h2 className="text-2xl font-bold text-white mb-4">
           Global Staking Overview
         </h2>
         
@@ -54,7 +54,7 @@ export function GlobalStakingStats() {
       </div>
 
       <div>
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        <h3 className="text-xl font-semibold text-white mb-4">
           Per-Chain Breakdown
         </h3>
         
@@ -62,46 +62,47 @@ export function GlobalStakingStats() {
           {Object.entries(chains).map(([chainId, chainData]) => (
             <div 
               key={chainId} 
-              className="bg-white dark:bg-gray-800 rounded-lg shadow p-4"
+              className="bg-gray-900/50 rounded-xl border border-gray-800 p-5 shadow-lg"
             >
-              <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
+              <h4 className="text-lg font-medium text-white mb-3 flex items-center">
+                <span className="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
                 {CHAIN_NAMES[Number(chainId)] || `Chain ${chainId}`}
               </h4>
               
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Staked:</span>
+              <div className="space-y-3">
+                <div className="flex justify-between border-b border-gray-800 pb-2">
+                  <span className="text-gray-400">Staked:</span>
                   {isLoading ? (
-                    <Skeleton className="h-5 w-20" />
+                    <Skeleton className="h-5 w-20 bg-gray-800" />
                   ) : (
-                    <span>{chainData.totalStakedFormatted} STBC</span>
+                    <span className="text-white">{chainData.totalStakedFormatted} <span className="text-blue-400">STBC</span></span>
+                  )}
+                </div>
+                
+                <div className="flex justify-between border-b border-gray-800 pb-2">
+                  <span className="text-gray-400">Rewards:</span>
+                  {isLoading ? (
+                    <Skeleton className="h-5 w-20 bg-gray-800" />
+                  ) : (
+                    <span className="text-white">{chainData.totalRewardsFormatted} <span className="text-blue-400">STBC</span></span>
+                  )}
+                </div>
+                
+                <div className="flex justify-between border-b border-gray-800 pb-2">
+                  <span className="text-gray-400">APR:</span>
+                  {isLoading ? (
+                    <Skeleton className="h-5 w-12 bg-gray-800" />
+                  ) : (
+                    <span className="text-green-400 font-medium">{chainData.apr.toFixed(2)}%</span>
                   )}
                 </div>
                 
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Rewards:</span>
+                  <span className="text-gray-400">Stakers:</span>
                   {isLoading ? (
-                    <Skeleton className="h-5 w-20" />
+                    <Skeleton className="h-5 w-12 bg-gray-800" />
                   ) : (
-                    <span>{chainData.totalRewardsFormatted} STBC</span>
-                  )}
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">APR:</span>
-                  {isLoading ? (
-                    <Skeleton className="h-5 w-12" />
-                  ) : (
-                    <span>{chainData.apr.toFixed(2)}%</span>
-                  )}
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Stakers:</span>
-                  {isLoading ? (
-                    <Skeleton className="h-5 w-12" />
-                  ) : (
-                    <span>{chainData.totalStakers}</span>
+                    <span className="text-white">{chainData.totalStakers}</span>
                   )}
                 </div>
               </div>
