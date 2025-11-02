@@ -48,7 +48,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center justify-between">
-            <Link href="/staking" className="flex items-center">
+            <Link href="/" className="flex items-center">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <Coins className="w-5 h-5 text-white" />
               </div>
