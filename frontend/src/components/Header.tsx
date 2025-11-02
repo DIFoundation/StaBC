@@ -35,9 +35,11 @@ export default function Header() {
   }, [isMenuOpen]);
 
   const navItems = [
-    { name: 'dashboard', path: '/dashboard' },
-    { name: 'portfolio', path: '/portfolio' },
-    { name: 'settings', path: '/settings' },
+    { name: 'staking', path: '/staking', icon: '🔒' },
+    { name: 'governance', path: '/governance', icon: '🗳️' },
+    { name: 'bridge', path: '/bridge', icon: '🌉' },
+    { name: 'portfolio', path: '/portfolio', icon: '📊' },
+    { name: 'settings', path: '/settings', icon: '⚙️' },
   ];
 
   return (
@@ -46,7 +48,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center justify-between">
-            <Link href="/dashboard" className="flex items-center">
+            <Link href="/staking" className="flex items-center">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <Coins className="w-5 h-5 text-white" />
               </div>
@@ -61,12 +63,13 @@ export default function Header() {
                 <Link
                   key={item.name}
                   href={item.path}
-                  className={`relative px-4 py-2 rounded-lg font-medium capitalize transition-all ${
+                  className={`relative px-4 py-2 rounded-lg font-medium capitalize transition-all flex items-center gap-2 ${
                     isActive(item.path)
                       ? 'bg-gray-800 text-white'
                       : 'text-gray-600 dark:text-gray-400 hover:text-white hover:bg-gray-800/50'
                   }`}
                 >
+                  <span>{item.icon}</span>
                   {item.name}
                   {isActive(item.path) && (
                     <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 rounded-t-lg" />
@@ -114,12 +117,13 @@ export default function Header() {
             <Link
               key={item.name}
               href={item.path}
-              className={`block px-5 py-2 rounded-md text-base font-medium ${
+              className={`px-5 py-2 rounded-md text-base font-medium flex items-center gap-2 ${
                 isActive(item.path)
                   ? 'bg-gray-800 text-white'
                   : 'text-gray-300 hover:bg-gray-700 hover:text-white'
               }`}
             >
+              <span>{item.icon}</span>
               {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
             </Link>
           ))}
