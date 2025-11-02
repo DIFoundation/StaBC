@@ -117,7 +117,7 @@ export default function Header() {
             <Link
               key={item.name}
               href={item.path}
-              className={`block px-5 py-2 rounded-md text-base font-medium flex items-center gap-2 ${
+              className={`px-5 py-2 rounded-md text-base font-medium flex items-center gap-2 ${
                 isActive(item.path)
                   ? 'bg-gray-800 text-white'
                   : 'text-gray-300 hover:bg-gray-700 hover:text-white'
