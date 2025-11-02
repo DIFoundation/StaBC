@@ -306,7 +306,7 @@ export default function StakingTab() {
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
           <div className="text-sm text-gray-400 mb-1">Total Staked (Global)</div>
           <div className="text-2xl font-bold text-white">{totalStakedFormatted || '0'} STABC</div>
@@ -329,7 +329,7 @@ export default function StakingTab() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
   
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Stake Form */}

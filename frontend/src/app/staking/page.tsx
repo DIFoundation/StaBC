@@ -1,6 +1,7 @@
 'use client'
 import React from 'react';
 import StatsOverview from '@/components/StatsOverview'
+import { GlobalStakingStats } from '@/components/GlobalStakingStats';
 import StakingTab from '@/components/dashboardTabs/StakingTab'
 import { Lock } from 'lucide-react'
 
@@ -23,6 +24,11 @@ export default function StakingPage() {
       {/* Stats Overview */}
       <StatsOverview />
       
+      {/* Global Staking Stats */}
+      <div className="mt-8">
+        <GlobalStakingStats />
+      </div>
+
       {/* Main Staking Interface */}
       <div className="mt-8">
         <StakingTab />
@@ -30,4 +36,3 @@ export default function StakingPage() {
     </div>
   )
 }
-
