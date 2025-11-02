@@ -35,7 +35,8 @@ export default function PortfolioPage() {
   const stakedAmount = Number(stakedAmountFormatted || '0');
   const pendingRewards = Number(pendingRewardsFormatted || '0');
   const totalStaked = Number(totalStakedFormatted || '0');
-  const currentAPY = currentRewardRateFormatted ? Number(currentRewardRateFormatted) * 100 : 0;
+  // currentRewardRateFormatted is now just the percentage number (e.g., "20" for 20%)
+  const currentAPY = currentRewardRateFormatted ? Number(currentRewardRateFormatted) : 0;
   const tokenSymbol = symbol || 'STABC';
 
   // Mock data for features not yet implemented

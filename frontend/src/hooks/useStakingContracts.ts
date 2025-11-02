@@ -40,6 +40,7 @@ interface UseStakingReturn {
   currentRewardRateFormatted?: string;
   totalRewardsFormatted?: string;
   timeUntilUnlockSeconds?: number;
+  minLockDuration?: number;
   canWithdraw?: boolean;
   isLoading: boolean;
   isError: boolean;
@@ -49,6 +50,7 @@ interface UseStakingReturn {
   stake: (amount: string) => Promise<void>;
   withdraw: (amount: string) => Promise<void>;
   claimRewards: () => Promise<void>;
+  claimAndRestake: () => Promise<void>;
   emergencyWithdraw: () => Promise<void>;
 
   pause: () => Promise<void>;
@@ -157,6 +159,14 @@ export function useStaking({
       query: { enabled: !!userAddress },
     }) as { data: bigint | string | number | undefined; refetch: () => void };
 
+  const { data: minLockDuration, refetch: refetchMinLockDuration } =
+    useReadContract({
+      address: stakingAddress,
+      abi: CONTRACT_ABI,
+      functionName: "minLockDuration",
+      chainId,
+    }) as { data: bigint | undefined; refetch: () => void };
+
   // ============================================================================
   // COMPUTED VALUES
   // ============================================================================
@@ -164,9 +174,11 @@ export function useStaking({
     ? formatUnits(BigInt(totalStaked.toString()), tokenDecimals)
     : undefined;
 
+  // currentRewardRate is stored as a percentage (e.g., 20 = 20%), not in wei
+  // So we don't use formatUnits, just convert to string
   const currentRewardRateFormatted =
     currentRewardRate !== undefined
-      ? formatUnits(BigInt(currentRewardRate), tokenDecimals)
+      ? currentRewardRate.toString()
       : undefined;
 
   const totalRewardsFormatted =
@@ -194,6 +206,11 @@ export function useStaking({
       ? Number(timeUntilUnlock.toString())
       : undefined;
 
+  const minLockDurationSeconds =
+    minLockDuration !== undefined
+      ? Number(minLockDuration.toString())
+      : undefined;
+
   const canWithdraw =
     typeof userDetails?.canWithdraw === "boolean"
       ? userDetails.canWithdraw
@@ -210,6 +227,7 @@ export function useStaking({
     refetchTotalStaked();
     refetchTotalRewards();
     refetchRewardRate();
+    refetchMinLockDuration();
   }, [
     refetchUserInfo,
     refetchUserDetails,
@@ -218,6 +236,7 @@ export function useStaking({
     refetchTotalStaked,
     refetchTotalRewards,
     refetchRewardRate,
+    refetchMinLockDuration,
   ]);
 
   // ============================================================================
@@ -354,6 +373,16 @@ export function useStaking({
       });
     });
 
+  const claimAndRestake = async () =>
+    safeWrite(async () => {
+      await writeContract({
+        address: stakingAddress,
+        abi: CONTRACT_ABI,
+        functionName: "claimAndRestake",
+        chainId,
+      });
+    });
+
   const emergencyWithdraw = async () =>
     safeWrite(async () => {
       await writeContract({
@@ -468,6 +497,7 @@ export function useStaking({
     currentRewardRateFormatted,
     totalRewardsFormatted,
     timeUntilUnlockSeconds,
+    minLockDuration: minLockDurationSeconds,
     canWithdraw,
 
     isLoading: isUserInfoLoading,
@@ -477,6 +507,7 @@ export function useStaking({
     stake,
     withdraw,
     claimRewards,
+    claimAndRestake,
     emergencyWithdraw,
 
     pause,

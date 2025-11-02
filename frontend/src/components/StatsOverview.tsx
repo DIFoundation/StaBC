@@ -32,8 +32,9 @@ function StatsOverview() {
     });
 
     // Parse and calculate values
+    // currentRewardRateFormatted is now just the percentage number (e.g., "20" for 20%)
     const currentAPY = currentRewardRateFormatted
-        ? (Number(currentRewardRateFormatted) * 100).toFixed(2)
+        ? Number(currentRewardRateFormatted).toFixed(2)
         : '0.00';
 
     const totalStaked = totalStakedFormatted
