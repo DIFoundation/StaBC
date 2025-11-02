@@ -281,21 +281,10 @@ contract StakingContract is ReentrancyGuard, Pausable, Ownable {
             uint256 secondsPerYear = 365 days;
             
             // Calculate: (stakedAmount * currentRewardRate * secondsElapsed) / (100 * secondsPerYear)
-            // Using higher precision to avoid rounding errors
+            // Using multiplication first to avoid precision loss
             uint256 numerator = user.stakedAmount * currentRewardRate * secondsElapsed;
             uint256 denominator = 100 * secondsPerYear;
             uint256 newRewards = numerator / denominator;
-            
-            // Handle any remainder to improve precision
-            uint256 remainder = (numerator % denominator) * 1e18 / denominator;
-            if (remainder > 0 && newRewards == 0) {
-                // For very small amounts, accumulate remainder
-                user.rewardDebt += remainder;
-                if (user.rewardDebt >= 1e18) {
-                    newRewards += user.rewardDebt / 1e18;
-                    user.rewardDebt = user.rewardDebt % 1e18;
-                }
-            }
             
             if (newRewards > 0) {
                 user.pendingRewards += newRewards;

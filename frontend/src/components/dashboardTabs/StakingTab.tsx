@@ -188,17 +188,17 @@ export default function StakingTab() {
     }
     
     try {
-      const toastId = showToast.loading('Unstaking tokens...');
+      showToast.loading('Unstaking tokens...');
       
       await withdraw(unstakeAmount);
       
       showToast.success('Unstaking successful!', `${unstakeAmount} tokens unstaked`);
       setUnstakeAmount('');
       await refetchAll();
-      await refetchToken();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Unstaking failed:', error);
-      showToast.error('Unstaking failed', error?.message || 'Please try again');
+      const errorMessage = error instanceof Error ? error.message : 'Please try again';
+      showToast.error('Unstaking failed', errorMessage);
     }
   };
 
@@ -214,16 +214,16 @@ export default function StakingTab() {
     }
     
     try {
-      const toastId = showToast.loading('Claiming rewards...');
+      showToast.loading('Claiming rewards...');
       
       await claimRewards();
       
       showToast.success('Rewards claimed!', `${pendingRewards.toFixed(4)} tokens claimed`);
       await refetchAll();
-      await refetchToken();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Claiming rewards failed:', error);
-      showToast.error('Failed to claim rewards', error?.message || 'Please try again');
+      const errorMessage = error instanceof Error ? error.message : 'Please try again';
+      showToast.error('Failed to claim rewards', errorMessage);
     }
   };
 
@@ -239,16 +239,16 @@ export default function StakingTab() {
     }
     
     try {
-      const toastId = showToast.loading('Compounding rewards...');
+      showToast.loading('Compounding rewards...');
       
       await claimAndRestake();
       
       showToast.success('Rewards compounded!', `${pendingRewards.toFixed(4)} tokens restaked`);
       await refetchAll();
-      await refetchToken();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Compounding failed:', error);
-      showToast.error('Failed to compound rewards', error?.message || 'Please try again');
+      const errorMessage = error instanceof Error ? error.message : 'Please try again';
+      showToast.error('Failed to compound rewards', errorMessage);
     }
   };
 
@@ -268,16 +268,16 @@ export default function StakingTab() {
     }
 
     try {
-      const toastId = showToast.loading('Processing emergency withdrawal...');
+      showToast.loading('Processing emergency withdrawal...');
       
       await emergencyWithdraw();
       
       showToast.success('Emergency withdrawal successful', 'Note: A penalty was applied');
       await refetchAll();
-      await refetchToken();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Emergency withdrawal failed:', error);
-      showToast.error('Emergency withdrawal failed', error?.message || 'Please try again');
+      const errorMessage = error instanceof Error ? error.message : 'Please try again';
+      showToast.error('Emergency withdrawal failed', errorMessage);
     }
   };
 
