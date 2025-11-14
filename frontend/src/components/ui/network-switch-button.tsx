@@ -1,22 +1,15 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useAccount, useSwitchChain, useChains } from 'wagmi';
+import { useAccount, useSwitchChain } from 'wagmi';
 
 import { Button } from './button';
 import { Check, ChevronDown } from 'lucide-react';
 
-export function NetworkSwitchButton({
-  className = '',
-  ...props
-}: {
-  className?: string;
-  [key: string]: any;
-}) {
+export function NetworkSwitchButton() {
   const [isOpen, setIsOpen] = useState(false);
   const { chain } = useAccount();
-  const chains = useChains();
-  const { switchChain, isPending } = useSwitchChain();
+  const { chains, switchChain, isPending } = useSwitchChain();
 
   // Supported networks
   const supportedChains = chains.filter((c) => 
@@ -35,10 +28,10 @@ export function NetworkSwitchButton({
   };
 
   return (
-    <div className={`relative inline-block ${className}`} {...props}>
+    <div className={`relative inline-block`} >
       <Button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 w-full"
         disabled={isPending}
       >
         {currentChain ? (
@@ -67,7 +60,7 @@ export function NetworkSwitchButton({
                 <button
                   key={network.id}
                   onClick={() => handleNetworkSwitch(network.id)}
-                  disabled={isPending || chain.id === network.id}
+                  disabled={isPending}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between disabled:opacity-50"
                 >
                   <div className="flex items-center">
@@ -78,7 +71,7 @@ export function NetworkSwitchButton({
                     {getChainName(network.id)}
                   </div>
                   {chain.id === network.id && <Check className="h-4 w-4 text-green-500" />}
-                  {isPending || chain.id === network.id && (
+                  {isPending && (
                     <div className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-blue-600 rounded-full" />
                   )}
                 </button>

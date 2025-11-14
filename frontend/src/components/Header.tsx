@@ -132,8 +132,8 @@ export default function Header() {
 
           {/* Mobile Wallet Controls */}
           <div className="pt-4 flex flex-col gap-3 border-t border-gray-700 px-5 w-full">
-            <NetworkSwitchButton className="w-full justify-center bg-gray-800 hover:bg-gray-700 text-white px-4 py-2.5 rounded-lg" />
-            <ConnectWalletButton className="w-full justify-center bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2.5 rounded-lg font-medium" />
+            <NetworkSwitchButton />
+            <ConnectWalletButton />
           </div>
         </div>
       </div>
