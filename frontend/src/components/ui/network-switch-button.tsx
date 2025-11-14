@@ -31,7 +31,7 @@ export function NetworkSwitchButton() {
     <div className={`relative inline-block`} >
       <Button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 w-full"
+        className="flex items-center gap-2 w-full bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 rounded-lg font-medium"
         disabled={isPending}
       >
         {currentChain ? (

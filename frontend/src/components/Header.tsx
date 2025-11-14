@@ -84,8 +84,8 @@ export default function Header() {
           <div className="flex items-center space-x-3">
             {/* Desktop Wallet Buttons */}
             <div className="hidden md:flex items-center space-x-2">
-              <NetworkSwitchButton className="bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded-lg" />
-              <ConnectWalletButton className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg font-medium" />
+              <NetworkSwitchButton />
+              <ConnectWalletButton />
             </div>
 
             {/* Mobile Menu Button */}
