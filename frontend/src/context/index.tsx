@@ -18,23 +18,23 @@ if (!projectId) {
 const metadata = {
   name: 'appkit-example',
   description: 'AppKit Example',
-  url: 'https://appkitexampleapp.com', // origin must match your domain & subdomain
+  url: 'https://appkitexampleapp.com',
   icons: ['https://avatars.githubusercontent.com/u/179229932']
 }
 
-// Create the modal
-const modal = createAppKit({
+// Create the AppKit instance
+const appKit = createAppKit({
   adapters: [wagmiAdapter],
   projectId,
   networks: [baseSepolia, celoSepolia],
   defaultNetwork: celoSepolia,
-  metadata: metadata,
+  metadata,
   features: {
-    analytics: true // Optional - defaults to your Cloud configuration
+    analytics: true
   }
 })
 
-console.log("modal log to be able to build", modal)
+console.log("modal log to be able to build", appKit)
 
 
 function ContextProvider({ children, cookies }: { children: ReactNode; cookies: string | null }) {
