@@ -35,11 +35,11 @@ export default function Header() {
   }, [isMenuOpen]);
 
   const navItems = [
-    { name: 'staking', path: '/staking', icon: '🔒' },
-    { name: 'governance', path: '/governance', icon: '🗳️' },
-    { name: 'bridge', path: '/bridge', icon: '🌉' },
-    { name: 'portfolio', path: '/portfolio', icon: '📊' },
-    { name: 'settings', path: '/settings', icon: '⚙️' },
+    { name: 'staking', path: '/staking', icon: '' },
+    { name: 'governance', path: '/governance', icon: '' },
+    { name: 'bridge', path: '/bridge', icon: '' },
+    { name: 'portfolio', path: '/portfolio', icon: '' },
+    { name: 'settings', path: '/settings', icon: '' },
   ];
 
   return (
@@ -57,33 +57,32 @@ export default function Header() {
               </span>
             </Link>
           </div>
-            {/* Desktop Navigation */}
-            <nav className="hidden md:ml-10 md:flex md:space-x-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.path}
-                  className={`relative px-4 py-2 rounded-lg font-medium capitalize transition-all flex items-center gap-2 ${
-                    isActive(item.path)
-                      ? 'bg-gray-800 text-white'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-white hover:bg-gray-800/50'
+          {/* Desktop Navigation */}
+          <nav className="hidden md:ml-10 md:flex md:space-x-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                href={item.path}
+                className={`relative px-4 py-2 rounded-lg font-medium capitalize transition-all flex items-center gap-2 ${isActive(item.path)
+                    ? 'bg-gray-800 text-white'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-white hover:bg-gray-800/50'
                   }`}
-                >
-                  <span>{item.icon}</span>
-                  {item.name}
-                  {isActive(item.path) && (
-                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 rounded-t-lg" />
-                  )}
-                </Link>
-              ))}
-            </nav>
+              >
+                <span>{item.icon}</span>
+                {item.name}
+                {isActive(item.path) && (
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 rounded-t-lg" />
+                )}
+              </Link>
+            ))}
+          </nav>
 
           {/* Right Controls */}
           <div className="flex items-center space-x-3">
             {/* Desktop Wallet Buttons */}
             <div className="hidden md:flex items-center space-x-2">
-              <AppKitNetworkButton />
-              <AppKitButton />
+              <AppKitNetworkButton className='bg-white px-3 py-2 rounded-lg' />
+              <AppKitButton balance='hide' className='bg-white px-3 py-2 rounded-lg' />
             </div>
 
             {/* Mobile Menu Button */}
@@ -108,20 +107,18 @@ export default function Header() {
       {/* Mobile Menu */}
       <div
         id="mobile-menu"
-        className={`md:hidden mobile-menu overflow-hidden transition-all duration-300 ease-in-out ${
-          isMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
-        }`}
+        className={`md:hidden mobile-menu overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+          }`}
       >
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-900">
           {navItems.map((item) => (
             <Link
               key={item.name}
               href={item.path}
-              className={`px-5 py-2 rounded-md text-base font-medium flex items-center gap-2 ${
-                isActive(item.path)
+              className={`px-5 py-2 rounded-md text-base font-medium flex items-center gap-2 ${isActive(item.path)
                   ? 'bg-gray-800 text-white'
                   : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-              }`}
+                }`}
             >
               <span>{item.icon}</span>
               {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
@@ -129,9 +126,9 @@ export default function Header() {
           ))}
 
           {/* Mobile Wallet Controls */}
-          <div className="pt-4 flex flex-col sm:flex-row gap-2 border-t border-gray-700 px-5 w-full">
-            <AppKitNetworkButton className="w-full justify-center sm:w-auto" />
-            <AppKitButton className="w-full justify-center sm:w-auto" />
+          <div className="pt-4 flex flex-col sm:flex-row gap-2 border-t border-gray-700 px-5 w-full justify-center items-center">
+            <AppKitNetworkButton className="w-full justify-center sm:w-auto bg-white px-3 py-2 rounded-lg" />
+            <AppKitButton className="w-full justify-center sm:w-auto bg-white px-3 py-2 rounded-lg" />
           </div>
         </div>
       </div>
