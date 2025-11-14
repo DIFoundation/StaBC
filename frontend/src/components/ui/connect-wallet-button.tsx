@@ -6,15 +6,7 @@ import { shortenAddress } from '@/lib/utils';
 import { Button } from './button';
 import { useAppKit } from '@reown/appkit/react';
 
-export function ConnectWalletButton({
-  className = '',
-  showBalance = false,
-  ...props
-}: {
-  className?: string;
-  showBalance?: boolean;
-  [key: string]: any;
-}) {
+export function ConnectWalletButton() {
   const { address, isConnected } = useAccount();
   const { open } = useAppKit();
 
@@ -36,8 +28,7 @@ export function ConnectWalletButton({
   return (
     <Button
       onClick={handleConnect}
-      className={`relative overflow-hidden ${className}`}
-      {...props}
+      className={`relative overflow-hidden bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 rounded-lg font-medium`}
     >
       {isConnected ? (
         <span className="flex items-center">
