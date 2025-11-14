@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react';
-import { Lock, Unlock, Coins, Info, Award, AlertTriangle, RefreshCw, HelpCircle } from 'lucide-react';
+import { Lock, Unlock, Coins, Info, Award, AlertTriangle, RefreshCw } from 'lucide-react';
 import React from 'react'
 import { useToken } from '@/hooks/useStakingToken';
 import { useStaking } from '@/hooks/useStakingContracts';
@@ -36,7 +36,7 @@ export default function StakingTab() {
     currentRewardRateFormatted,
     timeUntilUnlockSeconds,
     canWithdraw,
-    totalStakedFormatted,
+    // totalStakedFormatted,
     minLockDuration,
     isLoading,
     stake,
