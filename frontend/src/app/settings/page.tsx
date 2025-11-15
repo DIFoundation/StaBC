@@ -40,7 +40,7 @@ export default function SettingsPage() {
   const getNetworkName = () => {
     if (!chainId) return 'Unknown Network';
     if (chainId === 84532) return 'Base Sepolia';
-    if (chainId === 44787) return 'Celo Alfajores';
+    if (chainId === 11142220) return 'Celo Sepolia';
     return `Chain ID: ${chainId}`;
   };
 
@@ -123,7 +123,7 @@ export default function SettingsPage() {
                       )}
                     </button>
                     <Link
-                      href={`https://${chainId === 84532 ? 'sepolia.basescan.org' : 'alfajores.celoscan.io'}/address/${address}`}
+                      href={`https://${chainId === 84532 ? 'sepolia.basescan.org' : 'sepolia.celoscan.io'}/address/${address}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-400 hover:text-white transition-colors"
@@ -317,7 +317,7 @@ export default function SettingsPage() {
               <div className="flex justify-between">
                 <span className="text-gray-400">Explorer</span>
                 <Link
-                  href={`https://${chainId === 84532 ? 'sepolia.basescan.org' : 'alfajores.celoscan.io'}`}
+                  href={`https://${chainId === 84532 ? 'sepolia.basescan.org' : 'sepolia.celoscan.io'}/address/${address}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-500 hover:text-blue-400 flex items-center gap-1"
