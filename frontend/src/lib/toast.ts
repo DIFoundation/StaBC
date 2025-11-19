@@ -21,6 +21,7 @@ export const showToast = {
     messages: {
       loading: string;
       success: string | ((data: T) => string);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       error: string | ((error: any) => string);
     }
   ) => {
