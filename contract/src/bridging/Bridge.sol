@@ -52,7 +52,7 @@ contract Bridge is Ownable, ReentrancyGuard {
      * @param _tokenAddress Address of the ERC20 token contract
      * @param _relayer Address of the trusted relayer
      */
-    constructor(address _tokenAddress, address _relayer) {
+    constructor(address _tokenAddress, address _relayer) Ownable(msg.sender) {
         require(_tokenAddress != address(0), "Invalid token address");
         require(_relayer != address(0), "Invalid relayer address");
         
@@ -83,10 +83,10 @@ contract Bridge is Ownable, ReentrancyGuard {
         bool success = IERC20(tokenAddress).transferFrom(msg.sender, address(this), _amount);
         require(success, "Token transfer failed");
         
-        // Generate a unique nonce for this transaction
+        // Generate a unique nonce for this transaction using block.prevrandao
         uint256 nonce = uint256(keccak256(abi.encodePacked(
             block.timestamp,
-            block.difficulty,
+            block.prevrandao,  // Using prevrandao instead of difficulty
             msg.sender,
             _amount,
             _targetChainId,
@@ -136,14 +136,24 @@ contract Bridge is Ownable, ReentrancyGuard {
         require(!processedTransactions[txId], "Transaction already processed");
         processedTransactions[txId] = true;
         
-        // Verify the signature (in a production environment, this would include more robust verification)
-        // For now, we're trusting the relayer (onlyRelayer modifier)
+        // Verify the signature
+        bytes32 messageHash = keccak256(abi.encodePacked(
+            block.chainid,
+            _recipient,
+            _amount,
+            _sourceChainId,
+            _sourceTxHash
+        ));
+        bytes32 ethSignedMessageHash = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash)
+        );
+        
+        address signer = recoverSigner(ethSignedMessageHash, _signature);
+        require(signer == relayer, "Invalid signature or signer");
         
         // Mint tokens on Base Sepolia or release locked tokens on Celo
         if (block.chainid == BASE_SEPOLIA_CHAIN_ID) {
             // On Base Sepolia, we'll mint new tokens
-            // Note: The token contract should have a mint function with onlyOwner modifier
-            // and this bridge contract should be set as the owner
             (bool success, ) = tokenAddress.call(
                 abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount)
             );
@@ -155,6 +165,49 @@ contract Bridge is Ownable, ReentrancyGuard {
         }
         
         emit TokensUnlocked(_recipient, _amount, _sourceChainId, _sourceTxHash);
+    }
+    
+    /**
+     * @dev Recovers the signer address from a signature
+     * @param _ethSignedMessageHash The signed message hash
+     * @param _signature The signature
+     * @return The address of the signer
+     */
+    function recoverSigner(
+        bytes32 _ethSignedMessageHash,
+        bytes memory _signature
+    ) internal pure returns (address) {
+        (bytes32 r, bytes32 s, uint8 v) = splitSignature(_signature);
+        return ecrecover(_ethSignedMessageHash, v, r, s);
+    }
+    
+    /**
+     * @dev Splits the signature into r, s, v components
+     * @param sig The signature to split
+     * @return r First 32 bytes of the signature
+     * @return s Next 32 bytes of the signature
+     * @return v Final 1 byte of the signature
+     */
+    function splitSignature(
+        bytes memory sig
+    ) internal pure returns (bytes32 r, bytes32 s, uint8 v) {
+        require(sig.length == 65, "Invalid signature length");
+        
+        assembly {
+            // First 32 bytes, after the length prefix
+            r := mload(add(sig, 32))
+            // Next 32 bytes
+            s := mload(add(sig, 64))
+            // Final byte (first byte of the next 32 bytes)
+            v := byte(0, mload(add(sig, 96)))
+        }
+        
+        // Handle EIP-155
+        if (v < 27) {
+            v += 27;
+        }
+        
+        require(v == 27 || v == 28, "Invalid signature 'v' value");
     }
     
     /**
