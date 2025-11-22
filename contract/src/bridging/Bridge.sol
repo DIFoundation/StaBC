@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  */
 contract Bridge is Ownable, ReentrancyGuard {
     // Chain IDs
-    uint256 public constant CELO_CHAIN_ID = 42220;
+    uint256 public constant CELO_SEPOLIA_CHAIN_ID = 11142220;
     uint256 public constant BASE_SEPOLIA_CHAIN_ID = 84532;
     
     // Token contract address (will be different on each chain)
@@ -74,7 +74,7 @@ contract Bridge is Ownable, ReentrancyGuard {
         require(_amount > 0, "Amount must be greater than 0");
         require(_targetChainId != block.chainid, "Cannot bridge to the same chain");
         require(
-            _targetChainId == CELO_CHAIN_ID || _targetChainId == BASE_SEPOLIA_CHAIN_ID,
+            _targetChainId == CELO_SEPOLIA_CHAIN_ID || _targetChainId == BASE_SEPOLIA_CHAIN_ID,
             "Unsupported target chain"
         );
         require(_targetRecipient != address(0), "Invalid recipient address");
@@ -121,7 +121,7 @@ contract Bridge is Ownable, ReentrancyGuard {
         require(_recipient != address(0), "Invalid recipient address");
         require(_sourceChainId != block.chainid, "Cannot unlock on the same chain");
         require(
-            _sourceChainId == CELO_CHAIN_ID || _sourceChainId == BASE_SEPOLIA_CHAIN_ID,
+            _sourceChainId == CELO_SEPOLIA_CHAIN_ID || _sourceChainId == BASE_SEPOLIA_CHAIN_ID,
             "Unsupported source chain"
         );
         
