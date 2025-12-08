@@ -2,64 +2,85 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 /**
- * @title Celo-Base Sepolia Bridge
- * @dev This contract facilitates cross-chain token transfers between Celo and Base Sepolia networks.
- * On Celo: Locks tokens for bridging to Base Sepolia
- * On Base Sepolia: Mints/burns tokens when bridging to/from Celo
+ * @title Celo-Base Sepolia Bridge (improved)
+ *
+ * Notes:
+ *  - Uses SafeERC20 for ERC20 transfers (handles tokens that don't return bool).
+ *  - Uses ECDSA for signature verification using OpenZeppelin helpers.
+ *  - Uses an internal monotonically-increasing nonce (lockNonce) for lock events (instead of block.prevrandao).
+ *  - Allows anyone to call unlockTokens as long as the relayer signed the payload (more decentralized).
+ *  - Keeps an onlyOwner function to update relayer and token parameters.
  */
 contract Bridge is Ownable, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+    using ECDSA for bytes32;
+
     // Chain IDs
     uint256 public constant CELO_SEPOLIA_CHAIN_ID = 11142220;
     uint256 public constant BASE_SEPOLIA_CHAIN_ID = 84532;
-    
+
     // Token contract address (will be different on each chain)
     address public tokenAddress;
-    
-    // Trusted relayer address for cross-chain message verification
+
+    // Trusted relayer address for cross-chain message signing
     address public relayer;
-    
+
+    // Nonce used for TokenLocked events to make unique event identifiers
+    uint256 public lockNonce;
+
     // Mapping to track processed transactions to prevent replay attacks
     mapping(bytes32 => bool) public processedTransactions;
-    
+
+    // Optional flag: does the local token support mint(address,uint256)?
+    // If true, unlock on this chain will call token.mint(recipient, amount)
+    bool public tokenIsMintable;
+
     // Events
     event TokensLocked(
         address indexed from,
         uint256 amount,
         uint256 targetChainId,
-        address targetRecipient,
+        address indexed targetRecipient,
         uint256 nonce
     );
-    
+
     event TokensUnlocked(
         address indexed recipient,
         uint256 amount,
         uint256 sourceChainId,
-        bytes32 sourceTxHash
+        bytes32 sourceTxHash,
+        bytes32 txId
     );
-    
-    // Modifier to check if the caller is the relayer
-    modifier onlyRelayer() {
-        require(msg.sender == relayer, "Caller is not the relayer");
-        _;
-    }
-    
+
+    event RelayerUpdated(address indexed oldRelayer, address indexed newRelayer);
+    event TokenAddressUpdated(address indexed oldToken, address indexed newToken);
+    event TokenMintableUpdated(bool oldFlag, bool newFlag);
+
     /**
      * @dev Constructor sets the token address and initial relayer
-     * @param _tokenAddress Address of the ERC20 token contract
-     * @param _relayer Address of the trusted relayer
+     * @param _tokenAddress Address of the ERC20 token contract for this chain
+     * @param _relayer Address of the trusted relayer (signer)
+     * @param _tokenIsMintable Whether this chain's token supports mint(address,uint256)
+     * @param _initialOwner The initial owner of the contract
      */
-    constructor(address _tokenAddress, address _relayer) Ownable(msg.sender) {
+    constructor(address _tokenAddress, address _relayer, bool _tokenIsMintable, address _initialOwner) Ownable(_initialOwner) {
         require(_tokenAddress != address(0), "Invalid token address");
         require(_relayer != address(0), "Invalid relayer address");
-        
+        require(_initialOwner != address(0), "Invalid initial owner");
+
         tokenAddress = _tokenAddress;
         relayer = _relayer;
+        tokenIsMintable = _tokenIsMintable;
+        lockNonce = 0;
     }
-    
+
     /**
      * @dev Locks tokens to be bridged to the target chain
      * @param _amount Amount of tokens to lock
@@ -71,159 +92,104 @@ contract Bridge is Ownable, ReentrancyGuard {
         uint256 _targetChainId,
         address _targetRecipient
     ) external nonReentrant {
-        require(_amount > 0, "Amount must be greater than 0");
-        require(_targetChainId != block.chainid, "Cannot bridge to the same chain");
+        require(_amount > 0, "Amount must be > 0");
+        require(_targetChainId != block.chainid, "Cannot bridge to same chain");
         require(
             _targetChainId == CELO_SEPOLIA_CHAIN_ID || _targetChainId == BASE_SEPOLIA_CHAIN_ID,
             "Unsupported target chain"
         );
-        require(_targetRecipient != address(0), "Invalid recipient address");
-        
-        // Transfer tokens from user to this contract
-        bool success = IERC20(tokenAddress).transferFrom(msg.sender, address(this), _amount);
-        require(success, "Token transfer failed");
-        
-        // Generate a unique nonce for this transaction using block.prevrandao
-        uint256 nonce = uint256(keccak256(abi.encodePacked(
-            block.timestamp,
-            block.prevrandao,  // Using prevrandao instead of difficulty
-            msg.sender,
-            _amount,
-            _targetChainId,
-            _targetRecipient
-        )));
-        
-        emit TokensLocked(
-            msg.sender,
-            _amount,
-            _targetChainId,
-            _targetRecipient,
-            nonce
-        );
+        require(_targetRecipient != address(0), "Invalid recipient");
+
+        // Transfer tokens from user to this contract (uses SafeERC20)
+        IERC20(tokenAddress).safeTransferFrom(msg.sender, address(this), _amount);
+
+        // Use a simple incrementing nonce for uniqueness and to avoid using block globals
+        lockNonce += 1;
+        uint256 nonce = lockNonce;
+
+        emit TokensLocked(msg.sender, _amount, _targetChainId, _targetRecipient, nonce);
     }
-    
+
     /**
-     * @dev Unlocks tokens on the target chain (called by relayer)
-     * @param _recipient Address to receive the unlocked tokens
-     * @param _amount Amount of tokens to unlock
-     * @param _sourceChainId Chain ID where the tokens were locked
-     * @param _sourceTxHash Transaction hash of the lock event on the source chain
-     * @param _signature Signature from the relayer for verification
+     * @dev Unlocks (or mints) tokens on this chain.
+     * Anybody may call this function, but the relayer must have signed the payload.
+     * @param _recipient Address to receive unlocked tokens
+     * @param _amount Amount to unlock
+     * @param _sourceChainId Chain ID where tokens were locked
+     * @param _sourceTxHash Transaction hash or event identifier from source chain
+     * @param _nonce Nonce from the source lock event (recommended)
+     * @param _signature Signature produced by the relayer signing the message
      */
     function unlockTokens(
         address _recipient,
         uint256 _amount,
         uint256 _sourceChainId,
         bytes32 _sourceTxHash,
+        uint256 _nonce,
         bytes calldata _signature
-    ) external onlyRelayer nonReentrant {
-        require(_amount > 0, "Amount must be greater than 0");
-        require(_recipient != address(0), "Invalid recipient address");
-        require(_sourceChainId != block.chainid, "Cannot unlock on the same chain");
+    ) external nonReentrant {
+        require(_amount > 0, "Amount must be > 0");
+        require(_recipient != address(0), "Invalid recipient");
+        require(_sourceChainId != block.chainid, "Source chain cannot equal current chain");
         require(
             _sourceChainId == CELO_SEPOLIA_CHAIN_ID || _sourceChainId == BASE_SEPOLIA_CHAIN_ID,
             "Unsupported source chain"
         );
-        
-        // Create a unique transaction ID to prevent replay attacks
-        bytes32 txId = keccak256(abi.encodePacked(
-            _recipient,
-            _amount,
-            _sourceChainId,
-            _sourceTxHash
-        ));
-        
-        require(!processedTransactions[txId], "Transaction already processed");
+
+        // Build txId to prevent replays (includes sourceTxHash and nonce for extra safety)
+        bytes32 txId = keccak256(abi.encodePacked(_recipient, _amount, _sourceChainId, _sourceTxHash, _nonce));
+        require(!processedTransactions[txId], "Already processed");
         processedTransactions[txId] = true;
+
+        // Recreate message hash and verify signature
+        bytes32 messageHash = keccak256(abi.encodePacked(block.chainid, _recipient, _amount, _sourceChainId, _sourceTxHash, _nonce));
         
-        // Verify the signature
-        bytes32 messageHash = keccak256(abi.encodePacked(
-            block.chainid,
-            _recipient,
-            _amount,
-            _sourceChainId,
-            _sourceTxHash
-        ));
-        bytes32 ethSignedMessageHash = keccak256(
-            abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash)
-        );
-        
-        address signer = recoverSigner(ethSignedMessageHash, _signature);
-        require(signer == relayer, "Invalid signature or signer");
-        
-        // Mint tokens on Base Sepolia or release locked tokens on Celo
-        if (block.chainid == BASE_SEPOLIA_CHAIN_ID) {
-            // On Base Sepolia, we'll mint new tokens
-            (bool success, ) = tokenAddress.call(
-                abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount)
-            );
-            require(success, "Token minting failed");
+        // Recover signer and check it equals the relayer
+        address signer = ECDSA.recover(messageHash, _signature);
+        require(signer == relayer, "Invalid signature");
+
+        // If token is mintable on this chain, call mint function; otherwise transfer from locked balance
+        if (tokenIsMintable) {
+            // Try the common mint signature: mint(address,uint256)
+            bytes memory payload = abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount);
+
+            // Use Address.functionCall to bubble revert reasons
+            Address.functionCall(tokenAddress, payload);
         } else {
-            // On Celo, release locked tokens
-            bool success = IERC20(tokenAddress).transfer(_recipient, _amount);
-            require(success, "Token transfer failed");
+            // Transfer retained tokens to recipient
+            IERC20(tokenAddress).safeTransfer(_recipient, _amount);
         }
-        
-        emit TokensUnlocked(_recipient, _amount, _sourceChainId, _sourceTxHash);
+
+        emit TokensUnlocked(_recipient, _amount, _sourceChainId, _sourceTxHash, txId);
     }
-    
-    /**
-     * @dev Recovers the signer address from a signature
-     * @param _ethSignedMessageHash The signed message hash
-     * @param _signature The signature
-     * @return The address of the signer
-     */
-    function recoverSigner(
-        bytes32 _ethSignedMessageHash,
-        bytes memory _signature
-    ) internal pure returns (address) {
-        (bytes32 r, bytes32 s, uint8 v) = splitSignature(_signature);
-        return ecrecover(_ethSignedMessageHash, v, r, s);
-    }
-    
-    /**
-     * @dev Splits the signature into r, s, v components
-     * @param sig The signature to split
-     * @return r First 32 bytes of the signature
-     * @return s Next 32 bytes of the signature
-     * @return v Final 1 byte of the signature
-     */
-    function splitSignature(
-        bytes memory sig
-    ) internal pure returns (bytes32 r, bytes32 s, uint8 v) {
-        require(sig.length == 65, "Invalid signature length");
-        
-        assembly {
-            // First 32 bytes, after the length prefix
-            r := mload(add(sig, 32))
-            // Next 32 bytes
-            s := mload(add(sig, 64))
-            // Final byte (first byte of the next 32 bytes)
-            v := byte(0, mload(add(sig, 96)))
-        }
-        
-        // Handle EIP-155
-        if (v < 27) {
-            v += 27;
-        }
-        
-        require(v == 27 || v == 28, "Invalid signature 'v' value");
-    }
-    
-    /**
-     * @dev Updates the relayer address (only callable by owner)
-     * @param _newRelayer Address of the new relayer
-     */
+
+    // -----------------------
+    // Admin / owner actions
+    // -----------------------
+
     function updateRelayer(address _newRelayer) external onlyOwner {
-        require(_newRelayer != address(0), "Invalid relayer address");
+        require(_newRelayer != address(0), "Invalid relayer");
+        address old = relayer;
         relayer = _newRelayer;
+        emit RelayerUpdated(old, _newRelayer);
     }
-    
+
+    function updateTokenAddress(address _newToken) external onlyOwner {
+        require(_newToken != address(0), "Invalid token");
+        address old = tokenAddress;
+        tokenAddress = _newToken;
+        emit TokenAddressUpdated(old, _newToken);
+    }
+
+    function setTokenIsMintable(bool _isMintable) external onlyOwner {
+        bool old = tokenIsMintable;
+        tokenIsMintable = _isMintable;
+        emit TokenMintableUpdated(old, _isMintable);
+    }
+
     /**
-     * @dev Emergency function to recover ERC20 tokens sent to the contract by mistake
-     * @param _token Address of the token to recover
-     * @param _to Address to send the tokens to
-     * @param _amount Amount of tokens to recover
+     * @dev Emergency function to recover non-bridge tokens sent to contract by mistake.
+     * Owner cannot withdraw the configured bridge token via this function.
      */
     function recoverERC20(
         address _token,
@@ -231,9 +197,7 @@ contract Bridge is Ownable, ReentrancyGuard {
         uint256 _amount
     ) external onlyOwner {
         require(_token != tokenAddress, "Cannot recover bridge token");
-        require(_to != address(0), "Invalid recipient address");
-        
-        bool success = IERC20(_token).transfer(_to, _amount);
-        require(success, "Token recovery failed");
+        require(_to != address(0), "Invalid recipient");
+        IERC20(_token).safeTransfer(_to, _amount);
     }
 }

@@ -23,7 +23,7 @@ const metadata = {
 }
 
 // Create the AppKit instance
-const appKit = createAppKit({
+export const appKit = createAppKit({
   adapters: [wagmiAdapter],
   projectId,
   networks: [baseSepolia, celoSepolia],
@@ -33,9 +33,6 @@ const appKit = createAppKit({
     analytics: true
   }
 })
-
-console.log("modal log to be able to build", appKit)
-
 
 function ContextProvider({ children, cookies }: { children: ReactNode; cookies: string | null }) {
   const initialState = cookieToInitialState(wagmiAdapter.wagmiConfig as Config, cookies)
