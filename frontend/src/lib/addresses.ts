@@ -24,8 +24,8 @@ export const CONTRACT_ADDRESSES: ContractAddresses = {
     }
 }
 
-export function getContractAddresses(chainId: number) {
-    const address = CONTRACT_ADDRESSES[chainId as ChainId];
+export function getContractAddresses(chainId: ChainId) {
+    const address = CONTRACT_ADDRESSES[chainId];
 
     if (!address) {
         throw new Error(`Unsupported chainId: ${chainId}`);
